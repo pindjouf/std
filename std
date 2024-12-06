@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+
+from datetime import datetime
+from enum import Enum
+import tomllib
+import asyncio
+import click
+import time
+import os
+
+current_time = datetime.now()
+time_str = current_time.strftime("%H:%M:%S")
+
+class State(Enum):
+    IDLE = 1
+    WORKING = 2
+    ON_BREAK = 3
+    PAUSED = 4
+
+@click.group()
+def cli():
+    pass
+
+@cli.command()
+def start():
+    click.echo(f"Current time: {time_str}")
+    start_int_time = time_to_int_converter(current_time)
+    click.echo(f"int representation: {start_int_time}")
+    time.sleep(2)
+    end_time = datetime.now()
+    end_int_time = time_to_int_converter(end_time)
+    result = end_int_time - start_int_time
+    normal_time = int_to_time_converter(result)
+    click.echo(f"int representation: {result}")
+    click.echo(f"time elapsed: {normal_time}")
+
+@cli.command()
+def status():
+    click.echo("bye")
+
+default_config = """work_period = 90
+break_period = 20
+sound_file = "/path/to/sound.mp3"
+"""
+
+def get_config_path():
+    config_path = os.path.expanduser("~/.config/std/config.toml")
+    if os.path.exists(config_path):
+        return config_path
+    else:
+        print(f":: Config file not found at '{config_path}'.")
+        answer = input(":: Proceed with creating default config? [Y/n] ").lower()
+        if answer in ("y", "yes", ""):
+            try:
+                os.makedirs(config_path[:-12], exist_ok=True)
+                with open(config_path, "w") as f:
+                    f.write(default_config)
+                print(f"\nDefault config created at '{config_path}'.")
+                return config_path
+            except Exception as e:
+                print(f"\nError creating config: {e}")
+                return None
+        else:
+            print("\nConfig creation aborted.")
+            return None
+
+def min_to_sec_converter(value):
+    result = value * 60
+    return result
+
+def time_to_int_converter(current_time):
+    hours = current_time.hour
+    minutes = current_time.minute
+    seconds = current_time.second
+
+    int_minutes = hours * 60 + minutes + (seconds / 60)
+    return int_minutes
+
+def int_to_time_converter(int_minutes):
+    hours = int(int_minutes // 60)
+
+    remaining_minutes = int(int_minutes % 60)
+
+    seconds = int(round((int_minutes - int(int_minutes)) * 60))
+
+    time = f"{hours:02}:{remaining_minutes:02}:{seconds:02}"
+    return time
+
+def get_key_values(key):
+    config_path = get_config_path()
+    with open(config_path, "rb") as f:
+        data = tomllib.load(f)
+        return data.get(key)
+
+async def main():
+    # work_period = get_key_values("work_period")
+    # break_period = get_key_values("break_period")
+    # sound = get_key_values("sound_file")
+    cli()
+
+if __name__ == "__main__":
+    asyncio.run(main())
