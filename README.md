@@ -1,98 +1,80 @@
 # Simple Timer Daemon (STD)
 
-A lightweight and configurable timer daemon that helps you manage work and break periods. STD is designed to run as a background service and can be easily controlled through a command-line interface.
+A lightweight and configurable timer daemon that helps you manage work and break periods. STD is designed to run as a background service and is perfect for study sessions, coding sprints, or any focused work that benefits from structured breaks.
 
 ## Features
 
-- Customizable work and break periods via a config file.
-- Plays a sound to signal transitions between work and break.
-- Runs as a daemon with systemd or standalone.
-- Easy CLI interaction for starting, stopping, and configuring the timer.
+- Configurable work/break periods
+- Audio notifications when periods end
+- Clean countdown display
+- Automatic transitions between work and break periods
+- Simple config file in TOML format
 
----
+## Requirements
+
+- Python 3.12+
+- mpg123 (for audio notifications)
+- Required Python packages:
+  - click>=8.1.7
+  - tomllib (included in Python 3.11+)
 
 ## Installation
 
-### Prerequisites
-
-- Python 3.8+
-- Linux with systemd (optional for running as a service)
-
-### Clone the Repository
-
+1. Clone this repository:
 ```bash
 git clone https://github.com/yourusername/std.git
 cd std
 ```
 
-### Install Dependencies
+2. Create and activate a virtual environment:
+```bash
+python -m venv env
+source env/bin/activate  # On Windows use: env\Scripts\activate
+```
 
+3. Install requirements:
 ```bash
 pip install -r requirements.txt
 ```
 
-### Configure the Timer
-
-Edit the `config.toml` file to set your desired work and break periods and the path to the sound file:
-
-```toml
-work_period = 25
-break_period = 5
-sound_file = "/absolute/path/to/sound.wav"
-```
-
----
+4. Install mpg123 for your system:
+- Ubuntu/Debian: `sudo apt install mpg123`
+- macOS: `brew install mpg123`
+- Windows: Download from the official mpg123 website
 
 ## Usage
 
-### Running Without Systemd
-
-Run the daemon manually:
-
+Start a study/work session:
 ```bash
-python main.py
+python std.py start
 ```
 
-### Running With Systemd
+## Configuration
 
-1. Copy the provided systemd service file to your user systemd directory:
+On first run, you can choose to create a default configuration file Ghich will be created at `~/.config/std/config.toml` with these settings:
 
-   ```bash
-   cp std.service ~/.config/systemd/user/
-   ```
+```toml
+work_period = 90    # Work period in minutes
+break_period = 20   # Break period in minutes
+sound_file = "/path/to/sound.mp3"  # Notification sound
+```
 
-2. Enable and start the service:
+Edit these values to match your preferred study/break schedule.
 
-   ```bash
-   systemctl --user enable std
-   systemctl --user start std
-   ```
+## Current Status
 
-### CLI Commands
+This is version 0.1.0, an MVP release. Core functionality is working, but some features are still in development:
 
-- Start a work period:
-
-  ```bash
-  std start
-  ```
-
-- Stop the timer:
-
-  ```bash
-  std stop
-  ```
-
-- Check status:
-
-  ```bash
-  std status
-  ```
-
----
+- ✅ Basic timer functionality
+- ✅ Work/break cycles
+- ✅ Audio notifications
+- ❌ Pause/resume (coming soon)
+- ❌ Session statistics (planned)
+- ❌ Status command (planned)
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and create a pull request.
+This is a personal project in active development. Feel free to open issues for bugs or feature suggestions!
 
 ## License
 

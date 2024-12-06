@@ -47,7 +47,7 @@ def get_key_values(key):
             return data.get(key)
     return None
 
-class ConfigManager:
+class Config:
     def __init__(self):
         self.current_time = datetime.now()
         self.time_str = self.current_time.strftime("%H:%M:%S")
@@ -61,7 +61,7 @@ def cli():
 
 @cli.command()
 def start():
-    config = ConfigManager()
+    config = Config()
     init_state = State(State.IDLE)
     cur_state = init_state
     work_time = min_to_sec_converter(config.work_period)
