@@ -8,35 +8,10 @@ import click
 import time
 import os
 
-current_time = datetime.now()
-time_str = current_time.strftime("%H:%M:%S")
-
 class State(Enum):
     IDLE = 1
     WORKING = 2
     ON_BREAK = 3
-    PAUSED = 4
-
-@click.group()
-def cli():
-    pass
-
-@cli.command()
-def start():
-    click.echo(f"Current time: {time_str}")
-    start_int_time = time_to_int_converter(current_time)
-    click.echo(f"int representation: {start_int_time}")
-    time.sleep(2)
-    end_time = datetime.now()
-    end_int_time = time_to_int_converter(end_time)
-    result = end_int_time - start_int_time
-    normal_time = int_to_time_converter(result)
-    click.echo(f"int representation: {result}")
-    click.echo(f"time elapsed: {normal_time}")
-
-@cli.command()
-def status():
-    click.echo("bye")
 
 default_config = """work_period = 90
 break_period = 20
@@ -64,6 +39,75 @@ def get_config_path():
             print("\nConfig creation aborted.")
             return None
 
+def get_key_values(key):
+    config_path = get_config_path()
+    if config_path:
+        with open(config_path, "rb") as f:
+            data = tomllib.load(f)
+            return data.get(key)
+    return None
+
+class ConfigManager:
+    def __init__(self):
+        self.current_time = datetime.now()
+        self.time_str = self.current_time.strftime("%H:%M:%S")
+        self.work_period = get_key_values("work_period")
+        self.break_period = get_key_values("break_period")
+        self.sound = get_key_values("sound_file")
+
+@click.group()
+def cli():
+    pass
+
+@cli.command()
+def start():
+    config = ConfigManager()
+    init_state = State(State.IDLE)
+    cur_state = init_state
+    work_time = min_to_sec_converter(config.work_period)
+    break_time = min_to_sec_converter(config.break_period)
+    sound = config.sound
+
+    while True:
+        match cur_state.name:
+            case "IDLE":
+                print("IDLE: Switching to WORKING")
+                cur_state = State.WORKING
+            case "WORKING":
+                print("\n[WORKING]")
+                for i in range(work_time, -1, -1):
+                    minutes = i // 60
+                    seconds = i % 60
+                    time_remaining = f"{minutes:02d}:{seconds:02d}"
+                    print(f"Time remaining: {time_remaining}")
+                    time.sleep(1)
+                os.system("mpg123 " + sound)
+                print("\nWORKING: Switching to ON_BREAK")
+                cur_state = State.ON_BREAK
+            case "ON_BREAK":
+                print("\n[ON_BREAK]")
+                for i in range(break_time, -1, -1):
+                    minutes = i // 60
+                    seconds = i % 60
+                    time_remaining = f"{minutes:02d}:{seconds:02d}"
+                    print(f"Time remaining: {time_remaining}")
+                    time.sleep(1)
+                os.system("mpg123 " + sound)
+                print("\nON_BREAK: Switching to WORKING")
+                cur_state = State.WORKING
+
+@cli.command()
+def pause():
+    click.echo("bye")
+
+@cli.command()
+def status():
+    click.echo("bye")
+
+@cli.command()
+def stop():
+    click.echo("bye")
+
 def min_to_sec_converter(value):
     result = value * 60
     return result
@@ -78,25 +122,14 @@ def time_to_int_converter(current_time):
 
 def int_to_time_converter(int_minutes):
     hours = int(int_minutes // 60)
-
     remaining_minutes = int(int_minutes % 60)
-
     seconds = int(round((int_minutes - int(int_minutes)) * 60))
 
     time = f"{hours:02}:{remaining_minutes:02}:{seconds:02}"
     return time
 
-def get_key_values(key):
-    config_path = get_config_path()
-    with open(config_path, "rb") as f:
-        data = tomllib.load(f)
-        return data.get(key)
-
-async def main():
-    # work_period = get_key_values("work_period")
-    # break_period = get_key_values("break_period")
-    # sound = get_key_values("sound_file")
+def main():
     cli()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
