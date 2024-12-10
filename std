@@ -3,9 +3,8 @@
 from datetime import datetime
 from enum import Enum
 import tomllib
-import asyncio
-import click
 import time
+import sys
 import os
 
 class State(Enum):
@@ -16,6 +15,41 @@ class State(Enum):
 default_config = """work_period = 90
 break_period = 20
 sound_file = "/path/to/sound.mp3"
+"""
+
+HELP_TEXT = """
+    \033[1;33m |_O_|'\\   /`'\\   /`
+      _|    \\ /    \\ /  
+    _|  \\    X      Y   
+        |_  /O\\     O\\  \033[0m
+    Simple Timer Daemon
+
+\033[0;33mUSAGE:\033[0m
+    std [OPTIONS] <COMMAND>
+
+\033[0;33mCOMMANDS:\033[0m
+    start            Start a new timer
+
+\033[0;33mOPTIONS:\033[0m
+    -h, --help       Show this help message
+    -v, --version    Show version information
+
+\033[0;90mVersion 0.1.1 - https://github.com/pindjouf/std\033[0m
+"""
+
+VERSION_TEXT = """
+    \033[1;33m |_O_|'\\   /`'\\   /`
+      _|    \\ /    \\ /  
+    _|  \\    X      Y   
+        |_  /O\\    /O\\  \033[0m
+    Simple Timer Daemon
+
+\033[0;33mVersion:\033[0m     0.1.1
+\033[0;33mAuthor:\033[0m      pindjouf
+\033[0;33mLicense:\033[0m     WTFPL
+\033[0;33mRepo:\033[0m        https://github.com/pindjouf/std
+
+\033[0;90mBuilt while listening to breakcore, lambada and everything in between\033[0m
 """
 
 def get_config_path():
@@ -55,11 +89,29 @@ class Config:
         self.break_period = get_key_values("break_period")
         self.sound = get_key_values("sound_file")
 
-@click.group()
-def cli():
-    pass
+def min_to_sec_converter(value):
+    result = value * 60
+    return result
 
-@cli.command()
+def validate_config(work_period, break_period, sound):
+    if not isinstance(work_period, int):
+        print("Error: work_period must be an integer.")
+        return False
+    if not isinstance(break_period, int):
+        print("Error: break_period must be an integer.")
+        return False
+    if not os.path.exists(sound):
+        print(f"Error: The sound file '{sound}' does not exist.")
+        return False   
+
+    return True
+
+def help():
+    print(HELP_TEXT)
+
+def version():
+    print(VERSION_TEXT)
+
 def start():
     config = Config()
     init_state = State(State.IDLE)
@@ -67,8 +119,9 @@ def start():
     work_time = min_to_sec_converter(config.work_period)
     break_time = min_to_sec_converter(config.break_period)
     sound = config.sound
+    config_valid = validate_config(work_time, break_time, sound)
 
-    while True:
+    while config_valid:
         match cur_state.name:
             case "IDLE":
                 print("IDLE: Switching to WORKING")
@@ -96,40 +149,19 @@ def start():
                 print("\nON_BREAK: Switching to WORKING")
                 cur_state = State.WORKING
 
-@cli.command()
-def pause():
-    click.echo("bye")
-
-@cli.command()
-def status():
-    click.echo("bye")
-
-@cli.command()
-def stop():
-    click.echo("bye")
-
-def min_to_sec_converter(value):
-    result = value * 60
-    return result
-
-def time_to_int_converter(current_time):
-    hours = current_time.hour
-    minutes = current_time.minute
-    seconds = current_time.second
-
-    int_minutes = hours * 60 + minutes + (seconds / 60)
-    return int_minutes
-
-def int_to_time_converter(int_minutes):
-    hours = int(int_minutes // 60)
-    remaining_minutes = int(int_minutes % 60)
-    seconds = int(round((int_minutes - int(int_minutes)) * 60))
-
-    time = f"{hours:02}:{remaining_minutes:02}:{seconds:02}"
-    return time
-
 def main():
-    cli()
+    if len(sys.argv) <= 1:
+        help()
+    else:
+        match sys.argv[1]:
+            case "start":
+                start()
+            case "-h" | "--help":
+                help()
+            case "-v" | "--version":
+                version()
+            case _:
+                help()
 
 if __name__ == "__main__":
     main()
