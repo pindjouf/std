@@ -21,7 +21,7 @@ A lightweight and configurable timer daemon that helps you manage work and break
 
 Run this:
 ```bash
-git clone https://github.com/yourusername/std.git && cd std && chmod +x std && ./std
+git clone https://github.com/pindjouf/std.git && cd std && chmod +x std && ./std start
 ```
 
 Install mpg123 for your system:
@@ -38,7 +38,7 @@ python std start
 
 I suggest just putting it in your /usr/local/bin while I work on turning it into a deamon:
 ```bash
-mv std /usr/local/bin/std && std
+sudo mv std /usr/local/bin/std && std start
 ```
 
 ## Configuration
