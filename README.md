@@ -15,29 +15,16 @@ A lightweight and configurable timer daemon that helps you manage work and break
 - Python 3.12+
 - mpg123 (for audio notifications)
 - Required Python packages:
-  - click>=8.1.7
   - tomllib (included in Python 3.11+)
 
-## Installation
+## Quick Install
 
-1. Clone this repository:
+Run this:
 ```bash
-git clone https://github.com/yourusername/std.git
-cd std
+git clone https://github.com/yourusername/std.git && cd std && chmod +x std && ./std
 ```
 
-2. Create and activate a virtual environment:
-```bash
-python -m venv env
-source env/bin/activate  # On Windows use: env\Scripts\activate
-```
-
-3. Install requirements:
-```bash
-pip install -r requirements.txt
-```
-
-4. Install mpg123 for your system:
+Install mpg123 for your system:
 - Ubuntu/Debian: `sudo apt install mpg123`
 - macOS: `brew install mpg123`
 - Windows: Download from the official mpg123 website
@@ -46,12 +33,17 @@ pip install -r requirements.txt
 
 Start a study/work session:
 ```bash
-python std.py start
+python std start
+```
+
+I suggest just putting it in your /usr/local/bin while I work on turning it into a deamon:
+```bash
+mv std /usr/local/bin/std && std
 ```
 
 ## Configuration
 
-On first run, you can choose to create a default configuration file Ghich will be created at `~/.config/std/config.toml` with these settings:
+On first run, you can choose to create a default configuration file Which will be created at `~/.config/std/config.toml` with these settings:
 
 ```toml
 work_period = 90    # Work period in minutes
@@ -63,7 +55,7 @@ Edit these values to match your preferred study/break schedule.
 
 ## Current Status
 
-This is version 0.1.0, an MVP release. Core functionality is working, but some features are still in development:
+This is version 0.1.1, an MVP release. Core functionality is working, but some features are still in development:
 
 - ✅ Basic timer functionality
 - ✅ Work/break cycles
