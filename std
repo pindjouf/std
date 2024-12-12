@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from enum import Enum
+import threading
 import tomllib
 import time
 import sys
@@ -11,6 +12,7 @@ class State(Enum):
     IDLE = 1
     WORKING = 2
     ON_BREAK = 3
+    PAUSED = 4
 
 default_config = """work_period = 90
 break_period = 20
@@ -90,8 +92,7 @@ class Config:
         self.sound = get_key_values("sound_file")
 
 def min_to_sec_converter(value):
-    result = value * 60
-    return result
+    return value * 60
 
 def validate_config(work_period, break_period, sound):
     if not isinstance(work_period, int):
@@ -114,6 +115,9 @@ def version():
 
 def start():
     config = Config()
+    global init_state
+    global cur_state
+    global time_remaining
     init_state = State(State.IDLE)
     cur_state = init_state
     work_time = min_to_sec_converter(config.work_period)
@@ -123,6 +127,9 @@ def start():
 
     while config_valid:
         match cur_state.name:
+            case "PAUSED":
+                print("\n[PAUSED]")
+                time_remaining = 1
             case "IDLE":
                 print("IDLE: Switching to WORKING")
                 cur_state = State.WORKING
@@ -132,7 +139,7 @@ def start():
                     minutes = i // 60
                     seconds = i % 60
                     time_remaining = f"{minutes:02d}:{seconds:02d}"
-                    print(f"Time remaining: {time_remaining}")
+                    # print(f"Time remaining: {time_remaining}")
                     time.sleep(1)
                 os.system("mpg123 " + sound)
                 print("\nWORKING: Switching to ON_BREAK")
@@ -143,11 +150,43 @@ def start():
                     minutes = i // 60
                     seconds = i % 60
                     time_remaining = f"{minutes:02d}:{seconds:02d}"
-                    print(f"Time remaining: {time_remaining}")
+                    # print(f"Time remaining: {time_remaining}")
                     time.sleep(1)
                 os.system("mpg123 " + sound)
                 print("\nON_BREAK: Switching to WORKING")
                 cur_state = State.WORKING
+
+def pause():
+    global cur_state
+    cur_state = State(State.PAUSED)
+    print(cur_state.name)
+
+
+def status():
+    global cur_state
+    match cur_state:
+        case State.WORKING:
+            print("\n[WORKING]")
+        case State.ON_BREAK:
+            print("\n[ON_BREAK]")
+        case State.PAUSED:
+            print("\n[PAUSED]")
+    print(time_remaining)
+
+def input_thread():
+    while True:
+        user_input = input()
+        if user_input != None:
+            print(f"You've asked for: {user_input}")
+            match user_input:
+                case "std status":
+                    status()
+                case "std pause":
+                    pause()
+                case _:
+                    help()
+        else:
+            pass
 
 def main():
     if len(sys.argv) <= 1:
@@ -162,6 +201,8 @@ def main():
                 version()
             case _:
                 help()
+
+threading.Thread(target=input_thread, daemon=True).start()
 
 if __name__ == "__main__":
     main()
